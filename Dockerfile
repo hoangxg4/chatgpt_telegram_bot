@@ -1,23 +1,18 @@
-FROM python:3.8-slim
+# Use an official Ubuntu runtime as a parent image
+FROM ubuntu:latest
 
-RUN \
-    set -eux; \
-    apt-get update; \
-    DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
-    python3-pip \
-    build-essential \
-    python3-venv \
-    ffmpeg \
-    git \
-    ; \
-    rm -rf /var/lib/apt/lists/*
+# Install Docker and Docker Compose
+RUN apt-get update \
+    && apt-get install -y \
+        docker.io \
+        docker-compose \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install -U pip && pip3 install -U wheel && pip3 install -U setuptools==59.5.0
-COPY ./requirements.txt /tmp/requirements.txt
-RUN pip3 install -r /tmp/requirements.txt && rm -r /tmp/requirements.txt
+# Set the working directory in the container
+WORKDIR /app
 
-COPY . /code
-WORKDIR /code
+# Copy the contents of the current directory into the container at /app
+COPY . /app
 
-CMD ["bash"]
-
+# Set the entrypoint to run the docker-compose command with the provided env file
+ENTRYPOINT ["docker-compose", "--env-file", "config/config.env", "up", "--build"]
